@@ -7,8 +7,12 @@ const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const {Schema} = mongoose;
 const signInMethod = require('./signin');
+var cookieParser = require('cookie-parser')
+
 
 const jwtKey = process.env.JWTKEY;
+
+app.use(cookieParser());
 
 app.use(bodyParser.urlencoded({
     extended:false
@@ -84,7 +88,7 @@ app.post('/login', function(req,res){
            bcrypt.compare(password, result.password).then(function(result){
             if(result){
                 var token = signInMethod(username, '2hr', jwtKey);
-                res.cookie('token', token, {maxAge: 3600*2})
+                res.cookie('token', token, {maxAge: 3600*2, httpOnly: true});
                 res.sendStatus(200);
             }else{
                 res.send("invalid password");
@@ -97,6 +101,24 @@ app.post('/login', function(req,res){
         //console.log(err);
     });
     //res.sendStatus(200);
+});
+
+app.post('/isloggedin', function(req,res){
+    console.log(req.cookies)
+    if(!req.cookies.token){
+        console.log('no token')
+        res.send('error')
+    }else{
+        jwt.verify(req.cookies.token, jwtKey, function(err, data){
+        if(err){
+            console.log(err)
+        }else{
+            console.log(data)
+        }
+        res.sendStatus(200);
+   })
+    }
+   
 });
 
 app.get('/', function(req,res){
