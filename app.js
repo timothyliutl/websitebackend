@@ -4,7 +4,11 @@ const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 const app = express();
 const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
 const {Schema} = mongoose;
+const signInMethod = require('./signin');
+
+const jwtKey = process.env.JWTKEY;
 
 app.use(bodyParser.urlencoded({
     extended:false
@@ -27,10 +31,12 @@ mongoose.connection.on('connected', function(err, res){
     console.log('Mongoose is connected');
 }).catch();
 
+mongoose.set('useCreateIndex', true)
+
 //mongoose shit
 const userSchema = new Schema({
-    userName: {type: String, required: true},
-    email: {type: String, required: true},
+    userName: {type: String, required: true, unique: true},
+    email: {type: String, required: true, unique: true},
     password: {type: String, required: true},
     
 });
@@ -38,8 +44,6 @@ const userModel = mongoose.model("User", userSchema);
 
 //bcrypt shit
 const saltRounds = 10;
-
-
 app.post('/create-user', function(req,res){
     const rawPassword = req.body.password;
     if(req.body.userName==null){
@@ -57,6 +61,7 @@ app.post('/create-user', function(req,res){
         newUser.save().catch(function(err){
             console.log('uwu i made a fucky');
             console.log(err);
+            res.send("error: Username or Email already used")
         });
 
         console.log('User saved successfully');
@@ -66,19 +71,37 @@ app.post('/create-user', function(req,res){
     })
 });
 
+app.post('/login', function(req,res){
+
+    var username = req.body.userName;
+    var password = req.body.password;
+
+    userModel.findOne({userName: username}).then(function(result){
+        console.log(result);
+        if(result===null){
+            res.send('User does not exist');
+        }else{
+           bcrypt.compare(password, result.password).then(function(result){
+            if(result){
+                var token = signInMethod(username, '2hr', jwtKey);
+                res.cookie('token', token, {maxAge: 3600*2})
+                res.sendStatus(200);
+            }else{
+                res.send("invalid password");
+            }
+           });
+        }
+    }).catch(function(err){
+        console.log('uwu i made a fucky')
+        console.log(err)
+        //console.log(err);
+    });
+    //res.sendStatus(200);
+});
+
 app.get('/', function(req,res){
 res.send('hello');
 });
-
-app.get('/create-account', function(req,res){
-    if(req===null){
-        res.send('Error, request is null');
-    }
-
-    
-});
-
-
 
 app.get('*', function(req,res){
     res.send(404);
