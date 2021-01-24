@@ -7,12 +7,15 @@ const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const {Schema} = mongoose;
 const signInMethod = require('./signin');
+const cors = require('cors')
 var cookieParser = require('cookie-parser')
+
 
 
 const jwtKey = process.env.JWTKEY;
 
 app.use(cookieParser());
+app.use(cors())
 
 app.use(bodyParser.urlencoded({
     extended:false
@@ -45,6 +48,14 @@ const userSchema = new Schema({
     
 });
 const userModel = mongoose.model("User", userSchema);
+
+const postSchema = new Schema({
+    userName:{type:String, required:true},
+    title: {type: String, required: true, minlength: 10},
+    description : {type: String, required: false}
+})
+
+const postModel = mongoose.model('Post', postSchema);
 
 //bcrypt shit
 const saltRounds = 10;
@@ -98,9 +109,9 @@ app.post('/login', function(req,res){
     }).catch(function(err){
         console.log('uwu i made a fucky')
         console.log(err)
-        //console.log(err);
+       
     });
-    //res.sendStatus(200);
+    
 });
 
 app.post('/isloggedin', function(req,res){
@@ -119,6 +130,10 @@ app.post('/isloggedin', function(req,res){
    })
     }
    
+});
+
+app.post('/newpost', function(req, res){
+
 });
 
 app.get('/', function(req,res){
