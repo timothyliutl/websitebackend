@@ -59,7 +59,7 @@ const postModel = mongoose.model('Post', postSchema);
 
 //bcrypt shit
 const saltRounds = 10;
-app.post('/create-user', function(req,res){
+app.post('/api/create-user', function(req,res){
     const rawPassword = req.body.password;
     if(req.body.userName==null){
         res.send('Error');
@@ -86,7 +86,7 @@ app.post('/create-user', function(req,res){
     })
 });
 
-app.post('/login', function(req,res){
+app.post('/api/login', function(req,res){
 
     var username = req.body.userName;
     var password = req.body.password;
@@ -114,7 +114,7 @@ app.post('/login', function(req,res){
     
 });
 
-app.post('/isloggedin', function(req,res){
+app.post('/api/isloggedin', function(req,res){
     console.log(req.cookies)
     if(!req.cookies.token){
         console.log('no token')
