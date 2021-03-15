@@ -98,8 +98,8 @@ app.post('/api/login', function(req,res){
         }else{
            bcrypt.compare(password, result.password).then(function(result){
             if(result){
-                var token = signInMethod(username, '2hr', jwtKey);
-                res.cookie('token', token, {maxAge: 3600*2, httpOnly: true});
+                var token = signInMethod(username, '1hr', jwtKey);
+                res.cookie('token', token, {maxAge: 3600, httpOnly: true});
                 res.sendStatus(200);
             }else{
                 res.send("invalid password");
@@ -115,7 +115,7 @@ app.post('/api/login', function(req,res){
 });
 
 app.post('/api/isloggedin', function(req,res){
-    console.log(req.cookies)
+    //console.log(req.cookies)
     if(!req.cookies.token){
         console.log('no token')
         res.send('error')
@@ -123,13 +123,23 @@ app.post('/api/isloggedin', function(req,res){
         jwt.verify(req.cookies.token, jwtKey, function(err, data){
         if(err){
             console.log(err)
+            res.send(err);
         }else{
-            console.log(data)
+            console.log("login successful");
+            res.send(data);
         }
-        res.sendStatus(200);
+        
    })
     }
    
+});
+
+app.post('/api/revoke-token', function(req,res){
+
+});
+
+app.post('/api/refresh-token', function(req,res){
+
 });
 
 app.post('/newpost', function(req, res){
